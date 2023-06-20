@@ -1,0 +1,23 @@
+language: generic 
+sudo: required
+services:
+    - docker
+#Here xardas88 is the docker hub username
+before_install:
+  - docker build -t xardas88/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true xardas88/react-test npm test
+
+after_success:
+  - docker build -t xardas88/multi-client ./client
+  - docker build -t xardas88/multi-nginx ./nginx
+  - docker build -t xardas88/multi-server ./server
+  - docker build -t xardas88/multi-worker ./worker
+# Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# Take those iamges and push them to docker hub
+  - docker push -t xardas88/multi-client
+  - docker push -t xardas88/multi-nginx
+  - docker push -t xardas88/multi-server
+  - docker push -t xardas88/multi-worker
